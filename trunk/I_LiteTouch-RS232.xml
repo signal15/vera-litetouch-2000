@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+<implementation>
+  <functions>
+	local LITETOUCH_SERVICE = "urn:schemas-signal15-com:device:LiteTouch:1"
+	local BUTTON_SERVICE = "urn:upnp-org:serviceId:SwitchPower1"
+	local BINARY_LIGHT_SERVICE = "urn:schemas-upnp-org:device:BinaryLight:1"
+	local DIMMER_SERVICE = "urn:upnp-org:serviceId:Dimming1"
+	local litetouch_cmd_buf = ""
+	local queryList = {}
+	local priorityQuery = ""
+    local childDeviceTable={
+        relays={},
+        dimmers={},
+    }
+
+  	function log(text)
+  		luup.log("LiteTouch: " .. text)
+  	end
+
+    local function ltBuildChildTable(device)
+        for k, v in pairs(luup.devices) do
+            if v.device_num_parent == device then
+            	local type = string.sub(v.id, 1, 1)
+				local cid = string.sub(v.id, 2)
+				if type == 'r' then
+					childDeviceTable.relays[cid] = k
+            	elseif type == 'd' then
+    	            childDeviceTable.dimmers[cid] = k
+    	        end
+            end
+        end
+    end
+
+  	local function ltSendCmd(cmd)
+  		log("Sending command: \"" .. cmd .. "\"")
+  		luup.io.write(cmd .. "\r")
+  	end
+
+  	local function ltSetButtonStatus(i, status)
+  		if (childDeviceTable.relays[i] ~= nil) then
+			local val = 0
+			if status == true then
+				val = 1
+			end
+			luup.variable_set(BUTTON_SERVICE, "Status", val, childDeviceTable.relays[i])
+		end
+  	end
+
+	local function ltSetDimmerStatus(i, status)
+		if (childDeviceTable.dimmers[i] ~= nil) then
+			luup.variable_set(DIMMER_SERVICE, "LoadLevelStatus", tostring(status), childDeviceTable.dimmers[i])
+		end
+	end
+	
+	local function ltPollLoad(did)
+		log("Polling load: " .. did)
+		local id = string.sub(did, 2)
+		cmd = " 18 " .. id
+		ltSendCmd(cmd)	 
+	end
+	
+	function ltPollingLoop()
+		ltPollLoad(queryList[1])
+		luup.call_timer("ltPollingLoop", 1, 2, "", "")
+	end
+		
+  	local function ltReceiveCmd(cmd)
+      	log("Received command: \"" .. cmd .. "\"")
+      	if string.len(cmd) > 4 then
+			if priorityQuery == nil then
+				local load = table.remove(queryList, 1)
+				local type = string.sub(load, 1, 1)
+				local level = string.sub(cmd, 4, 6)
+				if type == 'r' then
+					local id = string.sub(load, 2)
+					if level ~= "000" then
+						log("Setting Button status to On for relay " .. id)
+						ltSetButtonStatus(id, true)
+					else
+						log("Setting Button status to Off for relay " .. id)
+						ltSetButtonStatus(id, false)
+					end
+				end
+				if type == "d" then
+					local percent = math.ceil(level/2.5)
+					local id = string.sub(load, 2)
+					log("Setting dimmer slider to " .. percent .. " for dimmer " .. id)
+					ltSetDimmerStatus(id, percent)
+				end
+				table.insert(queryList, load)
+			else
+				local type = string.sub(priorityQuery, 1, 1)
+				local level = string.sub(cmd, 4, 6)
+				if type == 'r' then
+					local id = string.sub(priorityQuery, 2)
+					if level ~= "000" then
+						log("PriorityQuery: Setting Button status to On for relay " .. id)
+						ltSetButtonStatus(id, true)
+					else
+						log("PriorityQuery: Setting Button status to Off for relay " .. id)
+						ltSetButtonStatus(id, false)
+					end
+				end
+				if type == "d" then
+					local percent = math.ceil(level/2.5)
+					local id = string.sub(priorityQuery, 2)
+					log("PriorityQuery: Setting dimmer slider to " .. percent .. " for dimmer " .. id)
+					ltSetDimmerStatus(id, percent)
+				end
+				priorityQuery = nil
+			end
+  		end
+  	end
+
+  	function ltStartup(lul_device)
+  		log("#" .. lul_device .. " starting")
+  		
+		-- check that serial port is configured
+  		if (luup.io.is_connected(lul_device) == false) then
+  			log('No port for LiteTouch RS-232')
+  			luup.task('Choose the Serial Port for the LiteTouch', 2, 'LiteTouch RS-232 Interface', -1)
+  			return false;
+  		end
+  		
+		-- get list of configured relay loads
+  		local relayList = luup.variable_get(LITETOUCH_SERVICE, "RelayLoads", lul_device)
+  		if (relayList == nil) then
+  			relayList = "01-1"
+  			luup.variable_set(LITETOUCH_SERVICE, "RelayLoads", relayList, lul_device)
+  		end
+
+		-- get list of configured dimmer loads
+		local dimmerList = luup.variable_get(LITETOUCH_SERVICE, "DimmerLoads", lul_device)
+		if (dimmerList == nil) then
+			dimmerList = "01-1"
+			luup.variable_set(LITETOUCH_SERVICE, "DimmerLoads", dimmerList, lul_device)
+		end
+  		
+  		child_devices = luup.chdev.start(lul_device)
+
+		-- create relay load devices
+		for i in string.gmatch(relayList,"([^,]+)") do 
+			log("Adding relay load: " .. i)
+			luup.chdev.append(lul_device, child_devices, 'r' .. tostring(i), "Relay Load " .. i, BINARY_LIGHT_SERVICE, "D_BinaryLight1.xml", "", "", false)
+			local did = "r" .. i
+			table.insert(queryList, did)
+		end
+		
+		-- create dimmer load devices
+		for i in string.gmatch(dimmerList,"([^,]+)") do 
+			log("Adding dimmer load: " .. i)
+			luup.chdev.append(lul_device, child_devices, 'd' .. tostring(i), "Dimmer Load " .. i, DIMMER_SERVICE, "D_DimmableLight1.xml", "", "", false)
+			local did = "d" .. i
+			table.insert(queryList, did)
+		end
+
+  		luup.chdev.sync(lul_device, child_devices)
+  		
+  		-- build table of parent -> child device IDs
+  		ltBuildChildTable(lul_device)
+  		
+  		-- send commands to get current statuses
+		ltPollingLoop()
+  		
+  		return true, 'ok', 'LiteTouch-RS232'
+  	end
+  </functions>
+  <incoming>
+    <lua>
+      litetouch_cmd_buf = litetouch_cmd_buf .. tostring(lul_data)
+      local cmd
+      while true do
+      	local i = string.find(litetouch_cmd_buf, "\r")
+      	if i == nil then 
+      		break 
+      	end
+      	cmd = string.sub(litetouch_cmd_buf, 1, i-1)
+      	litetouch_cmd_buf = string.sub(litetouch_cmd_buf, i+1)
+      	ltReceiveCmd(cmd)
+      end
+    </lua>
+  </incoming>
+  <startup>ltStartup</startup>
+  <actionList>
+  	<action>
+  		<serviceId>urn:upnp-org:serviceId:SwitchPower1</serviceId>
+  		<name>SetTarget</name>
+  		<run>
+	        log('SetTarget device: ' .. tostring(lul_device) .. ' value: ' .. tostring(lul_settings.newTargetValue))
+	        local did = luup.devices[lul_device].id
+	        local type = string.sub(did, 1, 1)
+	        local cmd
+	        if type == 'r' then
+		        local id = string.sub(did, 2)
+		        cmd = " 10 " .. id .. " "
+	    	    if tostring(lul_settings.newTargetValue) == '1' then
+	        		cmd = cmd .. "001"
+		        else
+		        	cmd = cmd .. "000"
+	    	    end
+	    	end
+			priorityQuery = did
+	        ltSendCmd(cmd)
+			ltPollLoad(did)
+  		</run>
+  	</action>
+  	<action>
+  		<serviceId>urn:upnp-org:serviceId:Dimming1</serviceId>
+  		<name>SetLoadLevelTarget</name>
+  		<run>
+	        log('SetLoadLevelTarget device: ' .. tostring(lul_device) .. ' value: ' .. tostring(lul_settings.newLoadlevelTarget))
+	        local did = luup.devices[lul_device].id
+	        local type = string.sub(did, 1, 1)
+	        local cmd
+			local rawTarget
+			rawTarget = (string.format( "%03d", (string.format("%." .. 0 .. "f", lul_settings.newLoadlevelTarget*2.5))))
+	        if type == 'd' then
+	    		local id = string.sub(did, 2)
+	    		cmd = " 10 " .. id .. " " .. rawTarget
+	        end
+			priorityQuery = did
+	        ltSendCmd(cmd)
+			ltPollLoad(did)
+  		</run>
+  	</action>
+  </actionList>
+</implementation>

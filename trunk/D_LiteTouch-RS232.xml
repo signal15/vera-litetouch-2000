@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <device>
+    <deviceType>urn:schemas-signal15-com:device:LiteTouch:1</deviceType>
+    <staticJson>D_LiteTouch-RS232.json</staticJson>
+    <friendlyName>LiteTouch RS232 Interface</friendlyName>
+    <manufacturer>LiteTouch</manufacturer>
+    <manufacturerURL>http://www.savantsystems.com</manufacturerURL>
+    <modelDescription>LiteTouch ASCII RS232 Interface</modelDescription>
+    <modelName>LiteTouch 2000</modelName>
+    <modelNumber>1.0</modelNumber>
+    <UDN>uuid:ee72cdb0-a77c-11e1-afa6-0800200c9a66</UDN>
+    <protocol>raw</protocol>
+    <handleChildren>1</handleChildren>
+    <commUse>rs232</commUse>
+    <serviceList>
+    	<service>
+    		<serviceType>urn:schemas-micasaverde-com:service:LiteTouch:1</serviceType>
+    		<serviceId>urn:micasaverde-com:serviceId:LiteTouch1</serviceId>
+    	</service>
+    </serviceList>
+    <implementationList>
+      <implementationFile>I_LiteTouch-RS232.xml</implementationFile>
+    </implementationList>
+  </device>
+</root>
