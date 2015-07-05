@@ -19,10 +19,10 @@ Or maybe you are lucky and the installer left you a spreadsheet with all of this
   * LiteTouch integration cable.  You can make this with pins 2, 3, and 5 straight through.  If you want polling to work, you will need to bridge pins 7 & 8 at the CCU side (don't hook them up to your Vera).  The best way to make a cable is to get 2 RJ45->RS232 converters (ask your favorite network guy, he's got a drawer full)
 
 # = Setup = 
-  # Install the plugin, restart LUUP
-  # Go into the settings tab for the plugin, select your serial interface, restart LUUP
-  # Go into the advanced tab and set the *RelayLoads* and *DimmerLoads* variables.  Enter them as a comma separated list with no spaces, for example: "07-1,07-2,07-3,07-4,07-5,07-6,08-1,08-2,08-3,08-4,08-5,08-6,09-1,09-2,10-1,10-2,10-3,10-4,10-5,10-6"
-  # Restart LUUP
+  * Install the plugin, restart LUUP
+  * Go into the settings tab for the plugin, select your serial interface, restart LUUP
+  * Go into the advanced tab and set the *RelayLoads* and *DimmerLoads* variables.  Enter them as a comma separated list with no spaces, for example: "07-1,07-2,07-3,07-4,07-5,07-6,08-1,08-2,08-3,08-4,08-5,08-6,09-1,09-2,10-1,10-2,10-3,10-4,10-5,10-6"
+  * Restart LUUP
 
 Now all of your devices will show up.  As they are polled, the statuses will start updating.  Setting a load through Vera will poll the device immediately.  Otherwise, polling runs down a list of loads and polls one every two seconds, only to start back at the top after they've all been polled.  There are some limitations in the serial protocol which forced it to be done this way.
 
