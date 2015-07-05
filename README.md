@@ -1,9 +1,9 @@
 # vera-litetouch-2000
 Automatically exported from code.google.com/p/vera-litetouch-2000
 
-#summary Instructions for LiteTouch 2000 plugin for Vera
+#Instructions for LiteTouch 2000 plugin for Vera
 
-# = Introduction =
+## = Introduction =
 This plugin is for the MiCasaVerde Vera and adds support for the LiteTouch 2000 system.  It is known to work with UI5, no other versions have been tested.  It supports dimmer and relay loads, and polling with the right cable.  It will NOT work with the 5000LC controller, it only supports the ASCII protocol which is spoken by both the Compact and Standard CCU.
 
 This protocol doesn't support anything to enumerate the loads, so you'll need to define them all yourself when setting up the plugin.  Examples of loads would be 01-1, 03-4, or 10-6.  These are NOT keypad identifiers, these are load identifiers.  If you have the standard CCU, you can go into the LCD interface on it and view the loads that are assigned to each button.  Or, you can open up your panels and look at the dimmer and relay modules to see where the little dials are set to find out the ID.  The "10" in "10-6" is the module number, and the "6" is the output number.  10-6 would be the load.  Keep track of which are dimmer modules and which are relay modules.
