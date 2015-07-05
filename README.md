@@ -24,7 +24,7 @@ Or maybe you are lucky and the installer left you a spreadsheet with all of this
   * Go into the advanced tab and set the *RelayLoads* and *DimmerLoads* variables.  Enter them as a comma separated list with no spaces, for example: "07-1,07-2,07-3,07-4,07-5,07-6,08-1,08-2,08-3,08-4,08-5,08-6,09-1,09-2,10-1,10-2,10-3,10-4,10-5,10-6"
   * Restart LUUP
 
-Now all of your devices will show up.  As they are polled, the statuses will start updating.  Setting a load through Vera will poll the device immediately.  Otherwise, polling runs down a list of loads and polls one every two seconds, only to start back at the top after they've all been polled.  There are some limitations in the serial protocol which forced it to be done this way.
+Now all of your devices will show up.  As they are polled, the statuses will start updating.  Setting a load through Vera will poll the device immediately.  Otherwise, polling runs down a list of loads and polls one every two seconds, only to start back at the top after they've all been polled.  There are some limitations in the serial protocol which forced it to be done this way.  This means that if you have 48 total loads and you change one with a wall keypad, it could take up to 96 seconds for the Vera to pick it up.  
 
 You can now name your devices and start assigning them to rooms.
 
