@@ -193,10 +193,19 @@
 	        if type == 'r' then
 		        local id = string.sub(did, 2)
 		        cmd = " 10 " .. id .. " "
-	    	    if tostring(lul_settings.newTargetValue) == '1' then
-	        		cmd = cmd .. "001"
+	    	    if tostring(lul_settings.newTargetValue) == '0' then
+	        		cmd = cmd .. "000"
 		        else
-		        	cmd = cmd .. "000"
+		        	cmd = cmd .. "001"
+	    	    end
+	    	end
+	    	if type == 'd' then
+		        local id = string.sub(did, 2)
+		        cmd = " 10 " .. id .. " "
+	    	    if tostring(lul_settings.newTargetValue) == '0' then
+	        		cmd = cmd .. "000"
+		        else
+		        	cmd = cmd .. "001"
 	    	    end
 	    	end
 			priorityQuery = did
