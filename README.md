@@ -4,7 +4,7 @@ Automatically exported from code.google.com/p/vera-litetouch-2000
 #Instructions for LiteTouch 2000 plugin for Vera
 
 ## = Introduction =
-This plugin is for the MiCasaVerde Vera and adds support for the LiteTouch 2000 system.  It is known to work with UI5, no other versions have been tested.  It supports dimmer and relay loads, and polling with the right cable.  It will NOT work with the 5000LC controller, it only supports the ASCII protocol which is spoken by both the Compact and Standard CCU.
+This plugin is for the MiCasaVerde Vera and adds support for the LiteTouch 2000 system.  It is known to work with UI5, and is now working on UI7.  It supports dimmer and relay loads, and polling with the right cable.  It will NOT work with the 5000LC controller, it only supports the ASCII protocol which is spoken by both the Compact and Standard CCU.
 
 This protocol doesn't support anything to enumerate the loads, so you'll need to define them all yourself when setting up the plugin.  Examples of loads would be 01-1, 03-4, or 10-6.  These are NOT keypad identifiers, these are load identifiers.  If you have the standard CCU, you can go into the LCD interface on it and view the loads that are assigned to each button.  Or, you can open up your panels and look at the dimmer and relay modules to see where the little dials are set to find out the ID.  The "10" in "10-6" is the module number, and the "6" is the output number.  10-6 would be the load.  Keep track of which are dimmer modules and which are relay modules.
 
@@ -39,3 +39,4 @@ You should also note that the plug on the CCU side is a female plug.  So pick up
   * Exponential dimming for those that use LED lighting.  Unfortunately, this will be a global setting for all devices controlled by the plugin, and not on a per switch basis.  There will be a variable to set the exponent value.  
   * Ability to set the fade time for dimmers.  Again, this will be global for all dimmers controlled by the plugin.  Another limitation is that it's in whole seconds, no fractions of a second allowed because of limitations with the LiteTouch system.
   * 7/5/2015 - It's unlikely that I will update this plugin further.  Email me if you actually use it.  I've upgraded to an 5000LC controller, and will be putting effort into creating a plugin for that instead.  If you do use this, and need updates for some reason, or if it doesn't work with newer versions of Vera (i.e. UI7), let me know.
+  * 6/23/2016 - Updated to work with UI7.
