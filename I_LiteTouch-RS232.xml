@@ -141,7 +141,7 @@
 		-- create relay load devices
 		for i in string.gmatch(relayList,"([^,]+)") do 
 			log("Adding relay load: " .. i)
-			luup.chdev.append(lul_device, child_devices, 'r' .. tostring(i), "Relay Load " .. i, BINARY_LIGHT_SERVICE, "D_BinaryLight1.xml", "", "", false)
+			luup.chdev.append(lul_device, child_devices, 'r' .. tostring(i), "Relay Load " .. i, "urn:schemas-upnp-org:device:BinaryLight:1", "D_BinaryLight1.xml", "", "", false)
 			local did = "r" .. i
 			table.insert(queryList, did)
 		end
@@ -149,7 +149,7 @@
 		-- create dimmer load devices
 		for i in string.gmatch(dimmerList,"([^,]+)") do 
 			log("Adding dimmer load: " .. i)
-			luup.chdev.append(lul_device, child_devices, 'd' .. tostring(i), "Dimmer Load " .. i, DIMMER_SERVICE, "D_DimmableLight1.xml", "", "", false)
+			luup.chdev.append(lul_device, child_devices, 'd' .. tostring(i), "Dimmer Load " .. i, "urn:schemas-upnp-org:device:DimmableLight:1", "D_DimmableLight1.xml", "", "", false)
 			local did = "d" .. i
 			table.insert(queryList, did)
 		end
@@ -161,6 +161,7 @@
   		
   		-- send commands to get current statuses
 		ltPollingLoop()
+		luup.set_failure(0)
   		
   		return true, 'ok', 'LiteTouch-RS232'
   	end
@@ -205,7 +206,7 @@
 	    	    if tostring(lul_settings.newTargetValue) == '0' then
 	        		cmd = cmd .. "000"
 		        else
-		        	cmd = cmd .. "001"
+		        	cmd = cmd .. "250"
 	    	    end
 	    	end
 			priorityQuery = did
